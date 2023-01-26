@@ -69,21 +69,26 @@ def resolve_match(team_1: Team, team_2: Team, rng_generator: np.random.Generator
     Takes two teams that are to play a match, and returns the winner
     """
     # win_p_t1 is the win probability of team_1
-    print("team 1 " + str(team_1) + " VS " + str(team_2))
-    
+    print("MATCH: " + str(team_1) + " VS " + str(team_2))
+
     win_p_t1, _ = predict_win(teams=[[team_1.get_rating()], [team_2.get_rating()]])
+
+    print("WR T1:" + str(win_p_t1) + " -- WR T2: " + str(_))
 
     # Random number in (0, 1)
     u = rng_generator.random()
+    print("result:" + str(u))
 
     # If we assume that the openskill model is true, and that the win probabilities do
     # not depend on the current state of the tournament, then:
     # The probability of (win_p_t1 < u) is precicely win_p_t1!
     # (this is generally not going to be the case, especially in a 3 team tournament)
     if win_p_t1 < u:
+        print("winner: " + str(team_1))
         return team_1
     else:
         # if team_1 did not win, team_2 did (assuming no draws)
+        print("winner: " + str(team_2))
         return team_2
 
 
