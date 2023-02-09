@@ -61,7 +61,7 @@ def predict_result(teams: list[Team], display = True):
     return ordered
 
 
-def teams_to_brackets(teams: list[Team]) -> list[tuple[Team, Team]]:
+def teams_to_brackets(teams: list[Team]) -> list[tuple[Team, Team, Team]]:
     assert is_integer(np.sqrt(len(teams))), "can't create brackets for a knockout for non-square number of teams"
 
     return [(teams[i], teams[i+1], teams[i+2]) for i in range(0, len(teams), TEAMS_IN_ONE_MATCH)]
@@ -105,7 +105,7 @@ def resolve_match(team_1: Team, team_2: Team, team_3: Team, rng_generator: np.ra
             print("winner: " + str(team_3))
         return team_3
 
-def resolve_single_knockout_tournament(brackets: list[tuple[Team, Team]], rng_generator: np.random.Generator) -> Team:
+def resolve_single_knockout_tournament(brackets: list[tuple[Team, Team, Team]], rng_generator: np.random.Generator) -> Team:
     # while we're not in the final, resolve matches into new brackets
     while len(brackets) > 1:
         new_brackets = []
