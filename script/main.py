@@ -84,7 +84,7 @@ def resolve_match(team_1: Team, team_2: Team, team_3: Team, rng_generator: np.ra
     u = rng_generator.random()
     if DEBUG_MODE:
         print("result:" + str(u))
-    bucket = np.where(u < win_p_t1, 0, np.where(u < win_p_t2, 1, 2)).astype(int)
+    bucket = np.where(u < win_p_t1, 0, np.where(u < win_p_t1 + win_p_t2, 1, 2)).astype(int)
 
     # If we assume that the openskill model is true, and that the win probabilities do
     # not depend on the current state of the tournament, then:
