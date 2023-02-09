@@ -18,8 +18,6 @@ from openskill import Rating, predict_win
 import numpy as np
 from tqdm import tqdm
 
-success_prediction = 0
-
 TEAMS_IN_ONE_MATCH = 3
 DEBUG_MODE = 1
 
@@ -125,33 +123,29 @@ def resolve_single_knockout_tournament(brackets: list[tuple[Team, Team, Team]], 
 
 def single_simulation(rng_generator: np.random.Generator):
     teams = generate_teams(args.n_teams, rng_generator)
-    predicted_ranking = predict_result(teams, False)   
+    predicted_ranking = predict_result(teams, False)
     brackets = teams_to_brackets(teams)
     if DEBUG_MODE:
         print("predicted winner: " + str(predicted_ranking[0]))
     # Returns winner but currently ignored
-    grand_winner = resolve_single_knockout_tournament(brackets, rng_generator)
+    grand_winner = resolve_single_knockout_tournament(brackets, rng_generator) 
     if DEBUG_MODE:
         print("grand winner: " + str(grand_winner))
 
-    if predicted_ranking[0].get_name == grand_winner.get_name: 
-        global success_prediction
-        success_prediction += 1
+    return predicted_ranking[0].get_name == grand_winner.get_name
 
-    # Do some calculation on the result of the tournament
 
 def run_simulations(n, pools):
-    global success_prediction
-    success_prediction = 0
     now = datetime.datetime.now()
     ss = np.random.SeedSequence(int(round(now.timestamp())))
     seeds = ss.spawn(n)
     streams = [np.random.default_rng(seed) for seed in seeds]
     if DEBUG_MODE:
-        single_simulation(streams[0])
+        return single_simulation(streams[0])
     else:
         with multiprocessing.Pool(pools) as p:
-            res = list(tqdm(p.imap(single_simulation, streams), total=len(streams)))
+            return list(tqdm(p.imap(single_simulation, streams), total=len(streams)))
+
 
 
 if __name__ == "__main__":
@@ -160,7 +154,10 @@ if __name__ == "__main__":
     else:
         print("Running %5d simulations for %2d team" % (args.n_simulations, args.n_teams))
 
-    run_simulations(args.n_simulations, args.pools)
-    accuracy = success_prediction / args.n_simulations * 100
+    res = run_simulations(args.n_simulations, args.pools)
+
+    success_prediction = sum(res)
+
+    accuracy = success_prediction / len(res) * 100
     print("succesful predictions: " + str(success_prediction))
     print("Simulation finshed, accuracy: %5f percent" % (accuracy))
