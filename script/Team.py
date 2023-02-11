@@ -1,8 +1,12 @@
 from openskill import Rating
 
 class Team:
-    name = ""
-    rating = 0
+    _name = ""
+    _rating = 0
+    _matchVictoryCount = 0
+    _cycleVictoryCount = 0
+    _roundVictoryCount = 0
+    _defenseVictoryCount = 0
 
     def __init__(self, name:str, rating:Rating) -> None:
         self.name = name
@@ -25,7 +29,19 @@ class Team:
         return self.name + " (" + repr(self.rating) + ")"
 
     def get_name(self) -> str:
-        return self.name
+        return self._name
     
     def get_rating(self) -> Rating:
-        return self.rating
+        return self._rating
+
+    def addMatchVictory(self): 
+        self._matchVictoryCount += 1
+
+    def addCycleVictory(self): 
+        self._cycleVictoryCount += 1
+
+    def addRoundVictory(self): 
+        self._roundVictoryCount += 1
+
+    def addDefenseVictory(self): 
+        self._defenseVictoryCount += 1
