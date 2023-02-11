@@ -13,13 +13,11 @@ import argparse
 import multiprocessing
 import datetime
 from Team import Team # we represent a team with a name and a rating
+from utils import *
 
 from openskill import Rating, predict_win
 import numpy as np
 from tqdm import tqdm
-
-TEAMS_IN_ONE_MATCH = 3
-DEBUG_MODE = 1
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--n-simulations', type=int, default=10000)
@@ -28,12 +26,6 @@ parser.add_argument('-p', '--pools', type=int, default=4)
 parser.add_argument('-t', '--n-teams', type=int, default=9)
 args = parser.parse_args()
 
-
-def is_integer(x) -> bool:
-    """
-    Checks if a number is an integer, mathematically.
-    """
-    return x % 1 == 0
 
 
 def generate_teams(n: int, rng_generator: np.random.Generator) -> list[Team]:
