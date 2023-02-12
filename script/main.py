@@ -13,6 +13,8 @@ import argparse
 import multiprocessing
 import datetime
 from Team import Team # we represent a team with a name and a rating
+from tournaments import *
+from AlaraMatch import AlaraMatch
 from utils import *
 
 from openskill import Rating, predict_win
@@ -50,77 +52,15 @@ def predict_result(teams: list[Team], display = True):
 
     return ordered
 
-
-def teams_to_brackets(teams: list[Team]) -> list[tuple[Team, Team, Team]]:
-    assert is_integer(np.sqrt(len(teams))), "can't create brackets for a knockout for non-square number of teams"
-
-    return [(teams[i], teams[i+1], teams[i+2]) for i in range(0, len(teams), TEAMS_IN_ONE_MATCH)]
-
-
-def resolve_match(team_1: Team, team_2: Team, team_3: Team, rng_generator: np.random.Generator) -> Team:
-    """
-    Takes two teams that are to play a match, and returns the winner
-    """
-    # win_p_t1 is the win probability of team_1
-    if DEBUG_MODE:
-        print("MATCH: " + str(team_1) + " VS " + str(team_2) + " VS " + str(team_3))
-
-    win_p_t1, win_p_t2, win_p_t3 = predict_win(teams=[[team_1.get_rating()], [team_2.get_rating()], [team_3.get_rating()]])
-
-    if DEBUG_MODE:
-        print("WR T1:" + str(win_p_t1) + " -- WR T2: " + str(win_p_t2) + " -- WR T3: " + str(win_p_t3))
-
-    # Random number in (0, 1)
-    u = rng_generator.random()
-    if DEBUG_MODE:
-        print("result:" + str(u))
-    bucket = np.where(u < win_p_t1, 0, np.where(u < win_p_t1 + win_p_t2, 1, 2)).astype(int)
-
-    # If we assume that the openskill model is true, and that the win probabilities do
-    # not depend on the current state of the tournament, then:
-    # The probability of (win_p_t1 < u) is precicely win_p_t1!
-    # (this is generally not going to be the case, especially in a 3 team tournament)
-    if bucket == 0:
-        if DEBUG_MODE:
-            print("winner: " + str(team_1))
-        return team_1
-    elif bucket == 1:
-        # if team_1 did not win, team_2 did (assuming no draws)
-        if DEBUG_MODE:
-            print("winner: " + str(team_2))
-        return team_2
-    else: 
-                # if team_1 did not win, team_2 did (assuming no draws)
-        if DEBUG_MODE:
-            print("winner: " + str(team_3))
-        return team_3
-
-def resolve_single_knockout_tournament(brackets: list[tuple[Team, Team, Team]], rng_generator: np.random.Generator) -> Team:
-    # while we're not in the final, resolve matches into new brackets
-    while len(brackets) > 1:
-        new_brackets = []
-        for i in range(0, len(brackets), 3):
-            new_bracket = (
-                resolve_match(*brackets[i], rng_generator=rng_generator),
-                resolve_match(*brackets[i+1], rng_generator=rng_generator),
-                resolve_match(*brackets[i+2], rng_generator=rng_generator),
-                )
-            new_brackets.append(new_bracket)
-        brackets = new_brackets
-    
-    # Resolve the final
-    final = brackets[0]
-    return resolve_match(*final, rng_generator=rng_generator)
-
-
 def single_simulation(rng_generator: np.random.Generator):
     teams = generate_teams(args.n_teams, rng_generator)
     predicted_ranking = predict_result(teams, False)
-    brackets = teams_to_brackets(teams)
+    playedTournament = TournamentSingleKnockout(teams, rng_generator)
+    # brackets = teams_to_brackets(teams)
     if DEBUG_MODE:
         print("predicted winner: " + str(predicted_ranking[0]))
     # Returns winner but currently ignored
-    grand_winner = resolve_single_knockout_tournament(brackets, rng_generator) 
+    grand_winner = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 
     if DEBUG_MODE:
         print("grand winner: " + str(grand_winner))
 

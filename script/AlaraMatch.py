@@ -4,13 +4,13 @@ from openskill import predict_win
 from utils import *
 
 class AlaraMatch:
-    _teams: list[Team]
+    _teams: tuple[Team, Team, Team]
     _rng: np.random.Generator
 
     matchNumber: int = 0
     roundCount: int = 0
 
-    def __init__(self, teams: list[Team], rng_generator: np.random.Generator) -> None:
+    def __init__(self, teams: tuple[Team, Team, Team], rng_generator: np.random.Generator) -> None:
         self._teams = teams
         self._rng = rng_generator
         AlaraMatch.matchNumber += 1
@@ -25,15 +25,15 @@ class AlaraMatch:
         defenderTeam = 0
 
         if DEBUG_MODE:
-            print("PLAYING MATCH N°" + AlaraMatch.matchNumber + " --------------------------------------------------")
+            print("PLAYING MATCH N°" + str(AlaraMatch.matchNumber) + " --------------------------------------------------")
 
         while MAX_MATCH_SCORE not in matchScore:
             while MAX_CYCLE_SCORE not in cycleScore:
+                self.roundCount+=1
                 winner_index = self._playRound(defenderTeam)
                 cycleScore[winner_index] += 1
                 self._teams[winner_index].addRoundVictory()
                 defenderTeam = (defenderTeam + 1) % TEAMS_IN_ONE_MATCH
-                self.roundCount+=1
             
             cycleWinnerIndex = cycleScore.index(MAX_CYCLE_SCORE)
             matchScore[cycleWinnerIndex] += 1
