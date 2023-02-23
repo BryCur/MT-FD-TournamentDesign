@@ -64,7 +64,7 @@ def single_simulation(rng_generator: np.random.Generator):
     if DEBUG_MODE:
         print("grand winner: " + str(grand_winner))
 
-    return predicted_ranking[0].get_name == grand_winner.get_name
+    return (int)(predicted_ranking[0].get_name == grand_winner.get_name)
 
 
 def run_simulations(n, pools):
@@ -88,8 +88,10 @@ if __name__ == "__main__":
 
     res = run_simulations(args.n_simulations, args.pools)
 
-    success_prediction = sum(res)
-
-    accuracy = success_prediction / len(res) * 100
-    print("succesful predictions: " + str(success_prediction))
-    print("Simulation finshed, accuracy: %5f percent" % (accuracy))
+    if DEBUG_MODE: 
+        success_prediction = res 
+    else: 
+        success_prediction = sum(res)
+        accuracy = success_prediction / len(res) * 100
+        print("succesful predictions: " + str(success_prediction))
+        print("Simulation finshed, accuracy: %5f percent" % (accuracy))
