@@ -20,6 +20,11 @@ class aTournament(abc.ABC):
     @abc.abstractmethod
     def play(self):
         pass
+ 
+    @abc.abstractmethod
+    def getFinalRanking(self):
+        pass
+
 # ======================================================================================
 
 class TournamentSingleKnockout(aTournament):
@@ -33,6 +38,10 @@ class TournamentSingleKnockout(aTournament):
         assert is_integer(np.sqrt(len(self._participants))), "can't create brackets for a knockout for non-square number of teams"
 
         return [(self._participants[i], self._participants[i+1], self._participants[i+2]) for i in range(0, len(self._participants), TEAMS_IN_ONE_MATCH)]
+    
+    def getFinalRanking(self):
+        self._ranking = sorted(self._participants.copy(), key = lambda t: (t.getMatchVictoryCount(), t.getCycleVictoryCount(), t.getRoundVictoryCount(), t.getDefenseVictoryCount()), reverse=True)
+        return self._ranking
 
     def play(self):
         brackets = self._teams_to_brackets()
@@ -51,7 +60,8 @@ class TournamentSingleKnockout(aTournament):
         
         # Resolve the final
         final = brackets[0]
-        return AlaraMatch(final, self._rng).playMatch()
-    
+        AlaraMatch(final, self._rng).playMatch()
+
+        return self.getFinalRanking()
 
 

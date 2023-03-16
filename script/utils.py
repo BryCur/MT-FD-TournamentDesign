@@ -1,5 +1,5 @@
 TEAMS_IN_ONE_MATCH = 3
-DEBUG_MODE = 0
+DEBUG_MODE = 1
 
 def is_integer(x) -> bool:
     """

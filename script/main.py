@@ -16,6 +16,7 @@ from Team import Team # we represent a team with a name and a rating
 from tournaments import *
 from AlaraMatch import AlaraMatch
 from utils import *
+from RankingComparator import kendall_tau_distance
 
 from openskill import Rating, predict_win
 import numpy as np
@@ -60,11 +61,13 @@ def single_simulation(rng_generator: np.random.Generator):
     if DEBUG_MODE:
         print("predicted winner: " + str(predicted_ranking[0]))
     # Returns winner but currently ignored
-    grand_winner = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 
+    resulting_ranking = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 
     if DEBUG_MODE:
-        print("grand winner: " + str(grand_winner))
+        for t in resulting_ranking:
+            print(str(t))
+        #print("grand winner: " + str(resulting_ranking[0]))
 
-    return (int)(predicted_ranking[0].get_name == grand_winner.get_name)
+    return kendall_tau_distance(predicted_ranking, resulting_ranking)
 
 
 def run_simulations(n, pools):
@@ -79,7 +82,6 @@ def run_simulations(n, pools):
             return list(tqdm(p.imap(single_simulation, streams), total=len(streams)))
 
 
-
 if __name__ == "__main__":
     if DEBUG_MODE:
         print("Running one simulation, at " + datetime.datetime.now().isoformat())
@@ -90,6 +92,7 @@ if __name__ == "__main__":
 
     if DEBUG_MODE: 
         success_prediction = res 
+        print(success_prediction)
     else: 
         success_prediction = sum(res)
         accuracy = success_prediction / len(res) * 100

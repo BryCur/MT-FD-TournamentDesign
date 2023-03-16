@@ -24,7 +24,7 @@ class Team:
          return self.get_rating() >= other.get_rating()
 
     def __str__(self):
-        return self._name + " (" + repr(self._rating) + ")"
+        return f"{self._name} ({repr(self._rating)} ; match/cycle/round/defense : {self.getMatchVictoryCount()}/{self.getCycleVictoryCount()}/{self.getRoundVictoryCount()}/{self.getDefenseVictoryCount()})"
 
     def get_name(self) -> str:
         return self._name
@@ -43,3 +43,16 @@ class Team:
 
     def addDefenseVictory(self): 
         self._defenseVictoryCount += 1
+
+    def getMatchVictoryCount(self) -> int:
+        return self._matchVictoryCount
+        
+    def getCycleVictoryCount(self) -> int:
+        return self._cycleVictoryCount
+        
+    def getRoundVictoryCount(self) -> int:
+        return self._roundVictoryCount
+        
+    def getDefenseVictoryCount(self) -> int:
+        return self._defenseVictoryCount
+        
