@@ -1,6 +1,7 @@
 from openskill import Rating
 
 class Team:
+    _name: str
     _matchVictoryCount = 0
     _cycleVictoryCount = 0
     _roundVictoryCount = 0
@@ -24,10 +25,16 @@ class Team:
          return self.get_rating() >= other.get_rating()
 
     def __str__(self):
-        return f"{self._name} ({repr(self._rating)} ; match/cycle/round/defense : {self.getMatchVictoryCount()}/{self.getCycleVictoryCount()}/{self.getRoundVictoryCount()}/{self.getDefenseVictoryCount()})"
+        return self.get_name()
 
     def get_name(self) -> str:
         return self._name
+    
+    def get_rating_str(self) -> str:
+        return repr(self._rating)
+    
+    def get_score_str(self) -> str:
+        return f"{self.getMatchVictoryCount()}/{self.getCycleVictoryCount()}/{self.getRoundVictoryCount()}/{self.getDefenseVictoryCount()} (match/cycle/round/defense)"
     
     def get_rating(self) -> Rating:
         return self._rating
@@ -56,3 +63,5 @@ class Team:
     def getDefenseVictoryCount(self) -> int:
         return self._defenseVictoryCount
         
+    def get_score(self) -> tuple[int, int, int, int]:
+        return (self._matchVictoryCount, self._cycleVictoryCount, self._roundVictoryCount, self._defenseVictoryCount)

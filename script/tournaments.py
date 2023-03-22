@@ -4,17 +4,21 @@ from Team import Team
 from utils import *
 import numpy as np
 from AlaraMatch import AlaraMatch
+from Logger import Logger
 
 class aTournament(abc.ABC):
     _participants: list[Team]
     _ranking: list[Team]
     _matchCount: int
     _rng: np.random.Generator
+    _logger: Logger
 
     @abc.abstractmethod
-    def __init__(self, participants: list[Team], rng: np.random.Generator):
+    def __init__(self, participants: list[Team], rng: np.random.Generator, logger: Logger):
         self._participants = participants
         self._rng = rng
+        self._logger = logger
+        self._matchCount = 0
         pass
 
     @abc.abstractmethod
@@ -25,12 +29,15 @@ class aTournament(abc.ABC):
     def getFinalRanking(self):
         pass
 
+    def getMatchCount(self):
+        return self._matchCount
+
 # ======================================================================================
 
 class TournamentSingleKnockout(aTournament):
-    def __init__(self, participants: list[Team], rng: np.random.Generator):
+    def __init__(self, participants: list[Team], rng: np.random.Generator, logger: Logger):
         if(is_integer(math.log(len(participants), TEAMS_IN_ONE_MATCH))):
-            super().__init__(participants, rng)
+            super().__init__(participants, rng, logger)
         else:
             raise Exception("Single knockout needs for base participants unfulfilled (need power of 3)")
 
@@ -51,17 +58,34 @@ class TournamentSingleKnockout(aTournament):
             new_brackets = []
             for i in range(0, len(brackets), 3):
                 new_bracket = (
-                    AlaraMatch(brackets[i], self._rng).playMatch(),
-                    AlaraMatch(brackets[i+1], self._rng).playMatch(),
-                    AlaraMatch(brackets[i+2], self._rng).playMatch(),
+                    AlaraMatch(brackets[i], self._rng, self._logger).playMatch(),
+                    AlaraMatch(brackets[i+1], self._rng, self._logger).playMatch(),
+                    AlaraMatch(brackets[i+2], self._rng, self._logger).playMatch(),
                     )
                 new_brackets.append(new_bracket)
             brackets = new_brackets
         
         # Resolve the final
         final = brackets[0]
-        AlaraMatch(final, self._rng).playMatch()
+        AlaraMatch(final, self._rng, self._logger).playMatch()
 
         return self.getFinalRanking()
+    
+    def getTieCount(self):
+        ties = 0
+        tiedScores = list[tuple[int, int, int, int]]
+        for i in range(len(self._participants)):
+            reference_score = self._participants[i].get_score()
+
+            if reference_score in tiedScores :
+                continue
+
+            for j in range(i, len(self._participants)):
+                compared_score = self._participants[j].get_score()
+                if reference_score == compared_score:
+                    ties += 1
+
+
+        return ties
 
 

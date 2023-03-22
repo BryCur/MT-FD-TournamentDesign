@@ -12,11 +12,13 @@ How to modelize players incentive depending on te tournament state
 import argparse
 import multiprocessing
 import datetime
+import uuid
 from Team import Team # we represent a team with a name and a rating
 from tournaments import *
 from AlaraMatch import AlaraMatch
 from utils import *
 from RankingComparator import kendall_tau_distance
+from Logger import Logger
 
 from openskill import Rating, predict_win
 import numpy as np
@@ -53,19 +55,29 @@ def predict_result(teams: list[Team], display = True):
 
     return ordered
 
-def single_simulation(rng_generator: np.random.Generator):
+def single_simulation(rng_generator: np.random.Generator, log_folder_name: str = None):
+    simulation_uid = uuid.uuid4().hex[:8]
+
+    log_file_location = "./sim-logs/"
+    if log_folder_name is not None:
+        log_file_location += log_folder_name + "/"
+
+    log_file_location += simulation_uid + ".log"
+
+    logger = Logger(simulation_uid, filepath=log_file_location)
     teams = generate_teams(args.n_teams, rng_generator)
     predicted_ranking = predict_result(teams, False)
-    playedTournament = TournamentSingleKnockout(teams, rng_generator)
-    # brackets = teams_to_brackets(teams)
-    if DEBUG_MODE:
-        print("predicted winner: " + str(predicted_ranking[0]))
+    logger.logRanking("Predicted", predicted_ranking)
+
+    playedTournament = TournamentSingleKnockout(teams, rng_generator, logger)
+
+    
     # Returns winner but currently ignored
     resulting_ranking = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 
-    if DEBUG_MODE:
-        for t in resulting_ranking:
-            print(str(t))
-        #print("grand winner: " + str(resulting_ranking[0]))
+    match_count = playedTournament.getMatchCount()
+    tie_count = playedTournament.getTieCount()
+    
+    logger.logRanking("Resulting", resulting_ranking)
 
     return kendall_tau_distance(predicted_ranking, resulting_ranking)
 
@@ -75,9 +87,12 @@ def run_simulations(n, pools):
     ss = np.random.SeedSequence(int(round(now.timestamp())))
     seeds = ss.spawn(n)
     streams = [np.random.default_rng(seed) for seed in seeds]
+    
+
     if DEBUG_MODE:
         return single_simulation(streams[0])
     else:
+        simulation_folder = datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')
         with multiprocessing.Pool(pools) as p:
             return list(tqdm(p.imap(single_simulation, streams), total=len(streams)))
 
