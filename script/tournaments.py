@@ -63,29 +63,34 @@ class TournamentSingleKnockout(aTournament):
                     AlaraMatch(brackets[i+2], self._rng, self._logger).playMatch(),
                     )
                 new_brackets.append(new_bracket)
+                self._matchCount +=3
             brackets = new_brackets
         
         # Resolve the final
-        final = brackets[0]
-        AlaraMatch(final, self._rng, self._logger).playMatch()
-
+        AlaraMatch(brackets[0], self._rng, self._logger).playMatch()
+        self._matchCount += 1
         return self.getFinalRanking()
     
     def getTieCount(self):
         ties = 0
-        tiedScores = list[tuple[int, int, int, int]]
+        tiedScores: list[tuple[int, int, int, int]] = []
         for i in range(len(self._participants)):
             reference_score = self._participants[i].get_score()
 
             if reference_score in tiedScores :
                 continue
 
-            for j in range(i, len(self._participants)):
+            for j in range(i+1, len(self._participants)):
                 compared_score = self._participants[j].get_score()
                 if reference_score == compared_score:
                     ties += 1
 
+            tiedScores.append(reference_score)
+
 
         return ties
+    
+    def getMatchCount(self):
+        return super().getMatchCount()
 
 

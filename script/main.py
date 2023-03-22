@@ -19,6 +19,7 @@ from AlaraMatch import AlaraMatch
 from utils import *
 from RankingComparator import kendall_tau_distance
 from Logger import Logger
+from csvManager import *
 
 from openskill import Rating, predict_win
 import numpy as np
@@ -31,6 +32,7 @@ parser.add_argument('-p', '--pools', type=int, default=4)
 parser.add_argument('-t', '--n-teams', type=int, default=9)
 args = parser.parse_args()
 
+g_folder_name = "./simulations/"
 
 
 def generate_teams(n: int, rng_generator: np.random.Generator) -> list[Team]:
@@ -55,21 +57,18 @@ def predict_result(teams: list[Team], display = True):
 
     return ordered
 
-def single_simulation(rng_generator: np.random.Generator, log_folder_name: str = None):
-    simulation_uid = uuid.uuid4().hex[:8]
+def single_simulation(input: tuple[np.random.Generator, str]):
+    simulation_uid = uuid.uuid4().hex
 
-    log_file_location = "./sim-logs/"
-    if log_folder_name is not None:
-        log_file_location += log_folder_name + "/"
+    simulation_log_file = f"{input[1]}logs/{simulation_uid}.log"
 
-    log_file_location += simulation_uid + ".log"
-
-    logger = Logger(simulation_uid, filepath=log_file_location)
-    teams = generate_teams(args.n_teams, rng_generator)
+    #print(simulation_log_file)
+    logger = Logger(simulation_uid, filepath=simulation_log_file)
+    teams = generate_teams(args.n_teams, input[0])
     predicted_ranking = predict_result(teams, False)
     logger.logRanking("Predicted", predicted_ranking)
 
-    playedTournament = TournamentSingleKnockout(teams, rng_generator, logger)
+    playedTournament = TournamentSingleKnockout(teams, input[0], logger)
 
     
     # Returns winner but currently ignored
@@ -79,20 +78,20 @@ def single_simulation(rng_generator: np.random.Generator, log_folder_name: str =
     
     logger.logRanking("Resulting", resulting_ranking)
 
-    return kendall_tau_distance(predicted_ranking, resulting_ranking)
+    return simulation_uid, *kendall_tau_distance(predicted_ranking, resulting_ranking), match_count, tie_count
 
 
 def run_simulations(n, pools):
+    global g_folder_name
     now = datetime.datetime.now()
     ss = np.random.SeedSequence(int(round(now.timestamp())))
     seeds = ss.spawn(n)
-    streams = [np.random.default_rng(seed) for seed in seeds]
+    streams = [(np.random.default_rng(seed), g_folder_name) for seed in seeds]
     
 
     if DEBUG_MODE:
         return single_simulation(streams[0])
     else:
-        simulation_folder = datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')
         with multiprocessing.Pool(pools) as p:
             return list(tqdm(p.imap(single_simulation, streams), total=len(streams)))
 
@@ -103,13 +102,13 @@ if __name__ == "__main__":
     else:
         print("Running %5d simulations for %2d team" % (args.n_simulations, args.n_teams))
 
+    g_folder_name = g_folder_name if DEBUG_MODE  else "./simulations/" + datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S') + "/"
+
     res = run_simulations(args.n_simulations, args.pools)
 
     if DEBUG_MODE: 
         success_prediction = res 
-        print(success_prediction)
     else: 
-        success_prediction = sum(res)
-        accuracy = success_prediction / len(res) * 100
-        print("succesful predictions: " + str(success_prediction))
-        print("Simulation finshed, accuracy: %5f percent" % (accuracy))
+        headers = ["simId", "kendalTauDistance", "disagreement", "matchCount", "tieCount"]
+        results_to_csv(res, headers, g_folder_name)
+        
