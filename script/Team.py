@@ -6,6 +6,10 @@ class Team:
     _cycleVictoryCount = 0
     _roundVictoryCount = 0
     _defenseVictoryCount = 0
+    _matchCount = 0
+    _cycleCount = 0
+    _roundCount = 0
+    _defenseCount = 0
 
     def __init__(self, name:str, rating:Rating) -> None:
         self._name = name
@@ -51,6 +55,18 @@ class Team:
     def addDefenseVictory(self): 
         self._defenseVictoryCount += 1
 
+    def addMatch(self): 
+        self._matchCount += 1
+
+    def addCycle(self): 
+        self._cycleCount += 1
+
+    def addRound(self): 
+        self._roundCount += 1
+
+    def addDefense(self): 
+        self._defenseCount += 1
+
     def getMatchVictoryCount(self) -> int:
         return self._matchVictoryCount
         
@@ -64,4 +80,4 @@ class Team:
         return self._defenseVictoryCount
         
     def get_score(self) -> tuple[int, int, int, int]:
-        return (self._matchVictoryCount, self._cycleVictoryCount, self._roundVictoryCount, self._defenseVictoryCount)
+        return (self._matchVictoryCount, self._cycleVictoryCount, self._roundVictoryCount / self._roundCount if self._roundCount > 0 else 1, self._defenseVictoryCount / self._defenseCount if self._defenseCount > 0 else 1)
