@@ -15,7 +15,6 @@ import datetime
 import uuid
 from Team import Team # we represent a team with a name and a rating
 from tournaments import *
-from AlaraMatch import AlaraMatch
 from utils import *
 from RankingComparator import kendall_tau_distance
 from Logger import Logger
@@ -26,10 +25,11 @@ import numpy as np
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-n', '--n-simulations', type=int, default=10000)
+parser.add_argument('-n', '--n-simulations', type=int, default=100)
 # number of pools, optimal number depends on the number of cores on your machine
 parser.add_argument('-p', '--pools', type=int, default=4)
 parser.add_argument('-t', '--n-teams', type=int, default=9)
+parser.add_argument('-f', '--format', type=int, default=2) # 1-single knockout, 2-round robin, 3-Swiss system, 4-custom
 args = parser.parse_args()
 
 g_folder_name = "./simulations/"
@@ -68,8 +68,13 @@ def single_simulation(input: tuple[np.random.Generator, str]):
     predicted_ranking = predict_result(teams, False)
     logger.logRanking("Predicted", predicted_ranking)
 
-    playedTournament = TournamentSingleKnockout(teams, input[0], logger)
-
+    # playedTournament = TournamentSingleKnockout(teams, input[0], logger)
+    playedTournament = None
+    tournamentRoundRobin(teams, input[0], logger)
+    match args.format:
+        case 1: playedTournament= TournamentSingleKnockout(teams, input[0], logger)
+        case 2: playedTournament = tournamentRoundRobin(teams, input[0], logger)
+        case _: playedTournament= TournamentSingleKnockout(teams, input[0], logger)
     
     # Returns winner but currently ignored
     resulting_ranking = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 
@@ -102,7 +107,7 @@ if __name__ == "__main__":
     else:
         print("Running %5d simulations for %2d team" % (args.n_simulations, args.n_teams))
 
-    g_folder_name = g_folder_name if DEBUG_MODE  else "./simulations/" + datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S') + "/"
+    g_folder_name = g_folder_name if DEBUG_MODE  else f"./simulations/{datetime.datetime.now().strftime('%Y%m%d_%H-%M-%S')}-{args.n_simulations}s-{args.n_teams}t-{getTournamentFormatStr(args.format).replace(' ', '')}/"
 
     res = run_simulations(args.n_simulations, args.pools)
 

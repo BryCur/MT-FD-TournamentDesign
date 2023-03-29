@@ -5,6 +5,7 @@ from utils import *
 import numpy as np
 from AlaraMatch import AlaraMatch
 from Logger import Logger
+from itertools import combinations
 
 class aTournament(abc.ABC):
     _participants: list[Team]
@@ -89,27 +90,46 @@ class TournamentSingleKnockout(aTournament):
         AlaraMatch(brackets[0], self._rng, self._logger).playMatch()
         self._matchCount += 1
         return self.getFinalRanking()
-    
-    def getTieCount(self):
-        ties = 0
-        tiedScores: list[tuple[int, int, int, int]] = []
-        for i in range(len(self._participants)):
-            reference_score = self._participants[i].get_score()
 
-            if reference_score in tiedScores :
-                continue
+# ======================================================================================
 
-            for j in range(i+1, len(self._participants)):
-                compared_score = self._participants[j].get_score()
-                if reference_score == compared_score:
-                    ties += 1
+class tournamentRoundRobin(aTournament):
+    def __init__(self, participants: list[Team], rng: np.random.Generator, logger: Logger):
+        super().__init__(participants, rng, logger)
 
-            tiedScores.append(reference_score)
+    def getFinalRanking(self):
+        self._ranking = sorted(self._participants.copy(), key = lambda t: (t.getMatchVictoryCount(), t.getCycleVictoryCount(), t.getRoundVictoryCount(), t.getDefenseVictoryCount()), reverse=True)
+        return self._ranking
 
+    def play(self):
+        all_matches= combinations(self._participants, TEAMS_IN_ONE_MATCH)
+        
+        for matchup in all_matches:
+            AlaraMatch(matchup, self._rng, self._logger).playMatch()
+            self._matchCount += 1
+        
+        return self.getFinalRanking()
 
-        return ties
-    
-    def getMatchCount(self):
-        return super().getMatchCount()
+# ======================================================================================
 
+class tournamentSwissSystem(aTournament):
+    _rounds = 5
 
+    def __init__(self, participants: list[Team], rng: np.random.Generator, logger: Logger, rounds: int):
+        super().__init__(participants, rng, logger)
+        self._rounds = rounds
+
+    def getFinalRanking(self):
+        self._ranking = sorted(self._participants.copy(), key = lambda t: (t.getMatchVictoryCount(), t.getCycleVictoryCount(), t.getRoundVictoryCount(), t.getDefenseVictoryCount()), reverse=True)
+        return self._ranking
+
+    def play(self):
+        # finish this
+        all_matches= combinations(self._participants, TEAMS_IN_ONE_MATCH)
+        
+        for r in range(self._rounds):
+            for i in range(len(self._participants),step=TEAMS_IN_ONE_MATCH):
+                AlaraMatch(self._participants[i:i+3], self._rng, self._logger).playMatch()
+                self._matchCount += 1
+        
+        return self.getFinalRanking()
