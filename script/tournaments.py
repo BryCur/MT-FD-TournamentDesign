@@ -31,6 +31,25 @@ class aTournament(abc.ABC):
 
     def getMatchCount(self):
         return self._matchCount
+    
+    def getTieCount(self):
+        ties = 0
+        tiedScores: list[tuple[int, int, int, int]] = []
+        for i in range(len(self._participants)):
+            reference_score = self._participants[i].get_score()
+
+            if reference_score in tiedScores :
+                continue
+
+            for j in range(i+1, len(self._participants)):
+                compared_score = self._participants[j].get_score()
+                if reference_score == compared_score:
+                    ties += 1
+
+            tiedScores.append(reference_score)
+
+
+        return ties
 
 # ======================================================================================
 
