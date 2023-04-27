@@ -80,4 +80,4 @@ class Team:
         return self._defenseVictoryCount
         
     def get_score(self) -> tuple[int, int, int, int]:
-        return (self._matchVictoryCount, self._cycleVictoryCount, self._roundVictoryCount / self._roundCount if self._roundCount > 0 else 1, self._defenseVictoryCount / self._defenseCount if self._defenseCount > 0 else 1)
+        return (self._matchVictoryCount, self._cycleVictoryCount / self._cycleCount if self._cycleCount > 0 else 1, self._roundVictoryCount / self._roundCount if self._roundCount > 0 else 1, self._defenseVictoryCount / self._defenseCount if self._defenseCount > 0 else 1)
