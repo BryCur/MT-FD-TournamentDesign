@@ -10,16 +10,16 @@ from itertools import combinations
 class aTournament(abc.ABC):
     _participants: list[Team]
     _ranking: list[Team]
-    _matchCount: int
     _rng: np.random.Generator
     _logger: Logger
+    _matchupHistory: list[tuple[Team, Team, Team]]
 
     @abc.abstractmethod
     def __init__(self, participants: list[Team], rng: np.random.Generator, logger: Logger):
         self._participants = participants
         self._rng = rng
         self._logger = logger
-        self._matchCount = 0
+        self._matchupHistory = []
         pass
 
     @abc.abstractmethod
@@ -31,7 +31,8 @@ class aTournament(abc.ABC):
         pass
 
     def getMatchCount(self):
-        return self._matchCount
+        self._logger.logInfoMessage(f"Match played in tournament: {len(self._matchupHistory)}")
+        return len(self._matchupHistory)
     
     def getTieCount(self):
         ties = 0
@@ -49,8 +50,17 @@ class aTournament(abc.ABC):
 
             tiedScores.append(reference_score)
 
-
+        self._logger.logInfoMessage(f"Ties in tournament: {ties}")
         return ties
+
+    def playTournamentMatch(self, matchup: tuple[Team, Team, Team]) -> Team:
+        self._matchupHistory.append(matchup)
+        return AlaraMatch(matchup, self._rng, self._logger).playMatch()
+    
+    def getCompleteDuplicateMatchupCount(self)-> int:
+        res = len(self._matchupHistory) - len(set(self._matchupHistory))
+        self._logger.logInfoMessage(f"Duplicate matches in tournament: {res}")
+        return res
 
 # ======================================================================================
 
@@ -78,17 +88,16 @@ class TournamentSingleKnockout(aTournament):
             new_brackets = []
             for i in range(0, len(brackets), 3):
                 new_bracket = (
-                    AlaraMatch(brackets[i], self._rng, self._logger).playMatch(),
-                    AlaraMatch(brackets[i+1], self._rng, self._logger).playMatch(),
-                    AlaraMatch(brackets[i+2], self._rng, self._logger).playMatch(),
+                    self.playTournamentMatch(brackets[i]),
+                    self.playTournamentMatch(brackets[i+1]),
+                    self.playTournamentMatch(brackets[i+2])
                     )
                 new_brackets.append(new_bracket)
-                self._matchCount +=3
             brackets = new_brackets
         
         # Resolve the final
-        AlaraMatch(brackets[0], self._rng, self._logger).playMatch()
-        self._matchCount += 1
+        self.playTournamentMatch(brackets[0])
+        
         return self.getFinalRanking()
 
 # ======================================================================================
@@ -105,8 +114,7 @@ class tournamentRoundRobin(aTournament):
         all_matches= combinations(self._participants, TEAMS_IN_ONE_MATCH)
         
         for matchup in all_matches:
-            AlaraMatch(matchup, self._rng, self._logger).playMatch()
-            self._matchCount += 1
+            self.playTournamentMatch(matchup)
         
         return self.getFinalRanking()
 
@@ -129,7 +137,6 @@ class tournamentSwissSystem(aTournament):
         
         for r in range(self._rounds):
             for i in range(len(self._participants),step=TEAMS_IN_ONE_MATCH):
-                AlaraMatch(self._participants[i:i+3], self._rng, self._logger).playMatch()
-                self._matchCount += 1
+                self.playTournamentMatch(self._participants[i:i+3])
         
         return self.getFinalRanking()

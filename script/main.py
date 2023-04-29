@@ -70,7 +70,7 @@ def single_simulation(input: tuple[np.random.Generator, str]):
 
     # playedTournament = TournamentSingleKnockout(teams, input[0], logger)
     playedTournament = None
-    tournamentRoundRobin(teams, input[0], logger)
+
     match args.format:
         case 1: playedTournament= TournamentSingleKnockout(teams, input[0], logger)
         case 2: playedTournament = tournamentRoundRobin(teams, input[0], logger)
@@ -80,10 +80,11 @@ def single_simulation(input: tuple[np.random.Generator, str]):
     resulting_ranking = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 
     match_count = playedTournament.getMatchCount()
     tie_count = playedTournament.getTieCount()
-    
+    complete_duplicate_match_count = playedTournament.getCompleteDuplicateMatchupCount()
+
     logger.logRanking("Resulting", resulting_ranking)
 
-    return simulation_uid, *kendall_tau_distance(predicted_ranking, resulting_ranking), match_count, tie_count
+    return simulation_uid, *kendall_tau_distance(predicted_ranking, resulting_ranking), match_count, tie_count, complete_duplicate_match_count
 
 
 def run_simulations(n, pools):
@@ -114,6 +115,6 @@ if __name__ == "__main__":
     if DEBUG_MODE: 
         success_prediction = res 
     else: 
-        headers = ["simId", "kendalTauDistance", "disagreement", "matchCount", "tieCount"]
+        headers = ["simId", "kendalTauDistance", "disagreement", "matchCount", "tieCount", "completeDuplicateMatches"]
         results_to_csv(res, headers, g_folder_name)
         
