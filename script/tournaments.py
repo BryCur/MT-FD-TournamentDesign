@@ -77,7 +77,7 @@ class TournamentSingleKnockout(aTournament):
         return [(self._participants[i], self._participants[i+1], self._participants[i+2]) for i in range(0, len(self._participants), TEAMS_IN_ONE_MATCH)]
     
     def getFinalRanking(self):
-        self._ranking = sorted(self._participants.copy(), key = lambda t: (t.getMatchVictoryCount(), t.getCycleVictoryCount(), t.getRoundVictoryCount(), t.getDefenseVictoryCount()), reverse=True)
+        self._ranking = sorted(self._participants.copy(), key = lambda t: t.get_score(), reverse=True)
         return self._ranking
 
     def play(self):
@@ -107,7 +107,7 @@ class tournamentRoundRobin(aTournament):
         super().__init__(participants, rng, logger)
 
     def getFinalRanking(self):
-        self._ranking = sorted(self._participants.copy(), key = lambda t: (t.getMatchVictoryCount(), t.getCycleVictoryCount(), t.getRoundVictoryCount(), t.getDefenseVictoryCount()), reverse=True)
+        self._ranking = sorted(self._participants.copy(), key = lambda t: t.get_score(), reverse=True)
         return self._ranking
 
     def play(self):
@@ -128,7 +128,7 @@ class tournamentSwissSystem(aTournament):
         self._rounds = rounds
 
     def getFinalRanking(self):
-        self._ranking = sorted(self._participants.copy(), key = lambda t: (t.getMatchVictoryCount(), t.getCycleVictoryCount(), t.getRoundVictoryCount(), t.getDefenseVictoryCount()), reverse=True)
+        self._ranking = sorted(self._participants.copy(), key = lambda t: t.get_score(), reverse=True)
         return self._ranking
 
     def play(self):

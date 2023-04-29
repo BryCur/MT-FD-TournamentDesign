@@ -38,7 +38,7 @@ class Team:
         return repr(self._rating)
     
     def get_score_str(self) -> str:
-        return f"{self.getMatchVictoryCount()}/{self.getCycleVictoryCount()}/{self.getRoundVictoryCount()}/{self.getDefenseVictoryCount()} (match/cycle/round/defense)"
+        return f"{self.get_score()} (match/cycle/round/defense)"
     
     def get_rating(self) -> Rating:
         return self._rating
@@ -67,6 +67,7 @@ class Team:
     def addDefense(self): 
         self._defenseCount += 1
 
+    # stat counts
     def getMatchVictoryCount(self) -> int:
         return self._matchVictoryCount
         
@@ -78,6 +79,19 @@ class Team:
         
     def getDefenseVictoryCount(self) -> int:
         return self._defenseVictoryCount
+
+    #stat rates
+    def getMatchVictoryRate(self) -> float:
+        return round(self._matchVictoryCount / self._matchCount if self._matchCount > 0 else 1, 2)
+        
+    def getCycleVictoryRate(self) -> float:
+        return round(self._cycleVictoryCount / self._cycleCount if self._cycleCount > 0 else 1, 2)
+        
+    def getRoundVictoryRate(self) -> float:
+        return round(self._roundVictoryCount / self._roundCount if self._roundCount > 0 else 1, 2)
+        
+    def getDefenseVictoryRate(self) -> float:
+        return round(self._defenseVictoryCount / self._defenseCount if self._defenseCount > 0 else 1, 2)
         
     def get_score(self) -> tuple[int, int, int, int]:
-        return (self._matchVictoryCount, self._cycleVictoryCount / self._cycleCount if self._cycleCount > 0 else 1, self._roundVictoryCount / self._roundCount if self._roundCount > 0 else 1, self._defenseVictoryCount / self._defenseCount if self._defenseCount > 0 else 1)
+        return (self.getMatchVictoryCount(), self.getCycleVictoryRate(), self.getRoundVictoryRate(), self.getDefenseVictoryRate())
