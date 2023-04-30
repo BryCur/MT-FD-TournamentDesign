@@ -128,19 +128,59 @@ class tournamentSwissSystem(aTournament):
     _rounds = 5
 
     def __init__(self, participants: list[Team], rng: np.random.Generator, logger: Logger, rounds: int):
-        super().__init__(participants, rng, logger)
-        self._rounds = rounds
+        if len(participants) % TEAMS_IN_ONE_MATCH == 0:
+            super().__init__(participants, rng, logger)
+            self._rounds = rounds
+        else:
+            raise Exception("Swiss System needs for base participants unfulfilled (need multiple of 3)")
 
     def getFinalRanking(self):
         self._ranking = sorted(self._participants.copy(), key = lambda t: t.get_score(), reverse=True)
         return self._ranking
 
     def play(self):
-        # finish this
-        all_matches= combinations(self._participants, TEAMS_IN_ONE_MATCH)
-        
-        for r in range(self._rounds):
-            for i in range(len(self._participants),step=TEAMS_IN_ONE_MATCH):
-                self.playTournamentMatch(self._participants[i:i+3])
-        
+
+        #first round: 
+        for i in range(0, len(self._participants), TEAMS_IN_ONE_MATCH):
+                self.playTournamentMatch(tuple(self._participants[i:i+TEAMS_IN_ONE_MATCH]))
+
+        for r in range(self._rounds-1):
+            round_matchup = self.makeRound()
+            for matchup in round_matchup: 
+                self.playTournamentMatch(matchup)
         return self.getFinalRanking()
+    
+    def makeRound(self)->tuple[Team, Team, Team]:
+        participant_pool_ordered = sorted(self._participants.copy(), key = lambda t: t.get_score(), reverse=True)
+        sorted_history_matchup = map(lambda matchup: tuple(sorted(matchup, key = lambda t: t.get_name())), self._matchupHistory)
+        set_past_matchups = set(sorted_history_matchup)
+        round_matchups = []
+        MAX_ATTEMPT = 3
+
+        while len(participant_pool_ordered) > 3:
+            first_participant = participant_pool_ordered.pop()
+            second_participant = participant_pool_ordered.pop()
+            last_participant = None
+            
+            attempt = 0
+
+            while attempt < min(MAX_ATTEMPT, len(participant_pool_ordered)):
+                ordered_matchup = tuple(sorted((first_participant, second_participant, participant_pool_ordered[attempt]), key = lambda t: t.get_name()))
+                if ordered_matchup not in set_past_matchups:
+                    last_participant = participant_pool_ordered[attempt]
+                    break
+                else:
+                    attempt += 1
+
+            if last_participant is None:
+                last_participant = participant_pool_ordered[0]
+
+            participant_pool_ordered.remove(last_participant)
+            round_matchups.append((first_participant, second_participant, last_participant))
+
+        return round_matchups
+
+                
+
+
+
