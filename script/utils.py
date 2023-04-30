@@ -1,5 +1,8 @@
 TEAMS_IN_ONE_MATCH = 3
 DEBUG_MODE = 0
+SAVE_LOGS = 0
+DISPLAY_LOGS = 0
+PERFORM_SEED = 0 # could be nice to implement
 
 def is_integer(x) -> bool:
     """
@@ -12,4 +15,4 @@ def getTournamentFormatStr(format) -> str:
         case 1: return "Single Knockout"
         case 2: return "Round-Robin"
         case 3: return "Swiss System"
-        case 4: return "Custom"
+        case 4: return "Custom" 

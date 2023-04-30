@@ -1,4 +1,5 @@
 import logging
+from utils import SAVE_LOGS, DISPLAY_LOGS
 import os
 from Team import Team
 
@@ -8,7 +9,7 @@ class Logger:
         self.logger.setLevel(level)
         formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         
-        if filepath:
+        if filepath is not None and SAVE_LOGS == 1:
             log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), filepath)
             log_file = os.path.normpath(log_file) # normalize path separators
             log_folder = os.path.dirname(log_file)
@@ -25,22 +26,32 @@ class Logger:
             self.logger.addHandler(console_handler)
         
     def logRanking(self, name:str, ranking: list[Team]):
+        if not DISPLAY_LOGS: 
+            return
         self.logger.info(f"{name} ranking : -----------------")
         for i in range(len(ranking)):
             self.logger.info(f"{i+1} - {ranking[i].get_name()} ({ranking[i].get_rating_str()} | {ranking[i].get_score_str()})")
 
     def logWinningOdds(self, teams: tuple[Team, Team, Team], odds: list[float]): 
+        if not DISPLAY_LOGS: 
+            return
         self.logger.info("winning odds for teams ---------------------------------")
         for i in range(3):
             self.logger.info(f"{teams[i].get_name()}: {odds[i]}")
 
     def logInfoMessage(self, message: str):
+        if not DISPLAY_LOGS: 
+            return
         self.logger.info(message)
 
     def logWarningMessage(self, message: str):
+        if not DISPLAY_LOGS: 
+            return
         self.logger.warning(message)
 
     def logErrorMessage(self, message: str):
+        if not DISPLAY_LOGS: 
+            return
         self.logger.error(message)
     
 

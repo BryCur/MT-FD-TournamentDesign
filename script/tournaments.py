@@ -54,11 +54,15 @@ class aTournament(abc.ABC):
         return ties
 
     def playTournamentMatch(self, matchup: tuple[Team, Team, Team]) -> Team:
-        self._matchupHistory.append(matchup)
+        self._matchupHistory.append(set(matchup))
         return AlaraMatch(matchup, self._rng, self._logger).playMatch()
     
     def getCompleteDuplicateMatchupCount(self)-> int:
-        res = len(self._matchupHistory) - len(set(self._matchupHistory))
+        # sorting the tuple so ABC and BAC are found as a duplicate
+        sorted_history_matchup = map(lambda matchup: tuple(sorted(matchup, key = lambda t: t.get_score())), self._matchupHistory)
+
+        set_matchup = set(sorted_history_matchup)
+        res = len(self._matchupHistory) - len(set_matchup)
         self._logger.logInfoMessage(f"Duplicate matches in tournament: {res}")
         return res
 
