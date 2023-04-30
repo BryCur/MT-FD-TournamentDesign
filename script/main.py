@@ -20,16 +20,16 @@ from RankingComparator import kendall_tau_distance
 from Logger import Logger
 from csvManager import *
 
-from openskill import Rating, predict_win
+from openskill import Rating
 import numpy as np
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-n', '--n-simulations', type=int, default=100)
+parser.add_argument('-n', '--n-simulations', type=int, default=10000)
 # number of pools, optimal number depends on the number of cores on your machine
 parser.add_argument('-p', '--pools', type=int, default=4)
 parser.add_argument('-t', '--n-teams', type=int, default=9)
-parser.add_argument('-f', '--format', type=int, default=2) # 1-single knockout, 2-round robin, 3-Swiss system, 4-custom
+parser.add_argument('-f', '--format', type=int, default=1) # 1-single knockout, 2-round robin, 3-Swiss system, 4-custom
 args = parser.parse_args()
 
 g_folder_name = "./simulations/"
@@ -74,17 +74,19 @@ def single_simulation(input: tuple[np.random.Generator, str]):
     match args.format:
         case 1: playedTournament= TournamentSingleKnockout(teams, input[0], logger)
         case 2: playedTournament = tournamentRoundRobin(teams, input[0], logger)
-        case _: playedTournament= TournamentSingleKnockout(teams, input[0], logger)
+        case 3: playedTournament= tournamentSwissSystem(teams, input[0], logger, 9)
     
     # Returns winner but currently ignored
     resulting_ranking = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 
     match_count = playedTournament.getMatchCount()
     tie_count = playedTournament.getTieCount()
     complete_duplicate_match_count = playedTournament.getCompleteDuplicateMatchupCount()
+    kt_ranking_distance = kendall_tau_distance(predicted_ranking, resulting_ranking)
 
     logger.logRanking("Resulting", resulting_ranking)
+    logger.logInfoMessage(f"Kendall Tau Distance: {kt_ranking_distance}")
 
-    return simulation_uid, *kendall_tau_distance(predicted_ranking, resulting_ranking), match_count, tie_count, complete_duplicate_match_count
+    return simulation_uid, *kt_ranking_distance, match_count, tie_count, complete_duplicate_match_count
 
 
 def run_simulations(n, pools):
