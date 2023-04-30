@@ -14,6 +14,14 @@ class Team:
     def __init__(self, name:str, rating:Rating) -> None:
         self._name = name
         self._rating = rating
+        self._matchVictoryCount = 0
+        self._cycleVictoryCount = 0
+        self._roundVictoryCount = 0
+        self._defenseVictoryCount = 0
+        self._matchCount = 0
+        self._cycleCount = 0
+        self._roundCount = 0
+        self._defenseCount = 0
         pass
 
     def __lt__(self, other):
@@ -82,16 +90,16 @@ class Team:
 
     #stat rates
     def getMatchVictoryRate(self) -> float:
-        return round(self._matchVictoryCount / self._matchCount if self._matchCount > 0 else 1, 2)
+        return round(self._matchVictoryCount / (self._matchCount if self._matchCount > 0 else 1), 2)
         
     def getCycleVictoryRate(self) -> float:
-        return round(self._cycleVictoryCount / self._cycleCount if self._cycleCount > 0 else 1, 2)
+        return round(self._cycleVictoryCount / (self._cycleCount if self._cycleCount > 0 else 1), 2)
         
     def getRoundVictoryRate(self) -> float:
-        return round(self._roundVictoryCount / self._roundCount if self._roundCount > 0 else 1, 2)
+        return round(self._roundVictoryCount / (self._roundCount if self._roundCount > 0 else 1), 2)
         
     def getDefenseVictoryRate(self) -> float:
-        return round(self._defenseVictoryCount / self._defenseCount if self._defenseCount > 0 else 1, 2)
+        return round(self._defenseVictoryCount / (self._defenseCount if self._defenseCount > 0 else 1), 2)
         
     def get_score(self) -> tuple[int, int, int, int]:
         return (self.getMatchVictoryCount(), self.getCycleVictoryRate(), self.getRoundVictoryRate(), self.getDefenseVictoryRate())

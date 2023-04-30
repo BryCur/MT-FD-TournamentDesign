@@ -34,7 +34,7 @@ class AlaraMatch:
         while MAX_MATCH_SCORE not in self.matchScore:
             while MAX_CYCLE_SCORE not in self.cycleScore:
                 self.roundCount+=1
-                map(lambda x: x.addRound(), self._teams)
+                
                 winner_index = self._playRound(defenderTeam)
                 self.cycleScore[winner_index] += 1
                 self._teams[winner_index].addRoundVictory()
@@ -46,7 +46,9 @@ class AlaraMatch:
             cycleWinnerIndex = self.cycleScore.index(MAX_CYCLE_SCORE)
             self.matchScore[cycleWinnerIndex] += 1
             self._teams[cycleWinnerIndex].addCycleVictory()
-            map(lambda x: x.addCycle(), self._teams)
+            self._teams[0].addCycle()
+            self._teams[1].addCycle()
+            self._teams[2].addCycle()
             self.cycleScore = [0,0,0]
 
             self.logger.logInfoMessage(f"State of current match")
@@ -57,7 +59,9 @@ class AlaraMatch:
 
         self.logger.logInfoMessage("\r\n" *3)
 
-        map(lambda x: x.addMatch(), self._teams)
+        self._teams[0].addMatch()
+        self._teams[1].addMatch()
+        self._teams[2].addMatch()
 
         return self._teams[matchWinnerIndex]
 
@@ -68,7 +72,13 @@ class AlaraMatch:
         """
         # win_p_t1 is the win probability of team_1
         self.logger.logInfoMessage(f"ROUND:  {self._teams[0].get_name()} VS {self._teams[0].get_name()}  VS  {self._teams[0].get_name()} || Defending team: {self._teams[defender_index].get_name()}")
+
         self._teams[defender_index].addDefense()
+
+        self._teams[0].addRound()
+        self._teams[1].addRound()
+        self._teams[2].addRound()
+
         # TODO mess around to represent the defending advantage and collaboration focus
         win_p_t1, win_p_t2, win_p_t3 = predict_win(teams=[[self._teams[0].get_rating()], [self._teams[1].get_rating()], [self._teams[2].get_rating()]])
 
