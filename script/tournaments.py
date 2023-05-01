@@ -76,7 +76,7 @@ class TournamentSingleKnockout(aTournament):
             raise Exception("Single knockout needs for base participants unfulfilled (need power of 3)")
 
     def _teams_to_brackets(self) -> list[tuple[Team, Team, Team]]:
-        assert is_integer(np.sqrt(len(self._participants))), "can't create brackets for a knockout for non-square number of teams"
+        #assert is_integer(np.sqrt(len(self._participants))), "can't create brackets for a knockout for non-square number of teams"
 
         return [(self._participants[i], self._participants[i+1], self._participants[i+2]) for i in range(0, len(self._participants), TEAMS_IN_ONE_MATCH)]
     

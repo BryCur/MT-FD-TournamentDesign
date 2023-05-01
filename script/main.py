@@ -28,8 +28,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--n-simulations', type=int, default=10000)
 # number of pools, optimal number depends on the number of cores on your machine
 parser.add_argument('-p', '--pools', type=int, default=4)
-parser.add_argument('-t', '--n-teams', type=int, default=9)
-parser.add_argument('-f', '--format', type=int, default=1) # 1-single knockout, 2-round robin, 3-Swiss system, 4-custom
+parser.add_argument('-t', '--n-teams', type=int, default=27)
+parser.add_argument('-f', '--format', type=int, default=3) # 1-single knockout, 2-round robin, 3-Swiss system, 4-custom
 args = parser.parse_args()
 
 g_folder_name = "./simulations/"
