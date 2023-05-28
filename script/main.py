@@ -72,9 +72,10 @@ def single_simulation(input: tuple[np.random.Generator, str]):
     playedTournament = None
 
     match args.format:
-        case 1: playedTournament= TournamentSingleKnockout(teams, input[0], logger)
+        case 1: playedTournament = TournamentSingleKnockout(teams, input[0], logger)
         case 2: playedTournament = tournamentRoundRobin(teams, input[0], logger)
-        case 3: playedTournament= tournamentSwissSystem(teams, input[0], logger, 9)
+        case 3: playedTournament = tournamentSwissSystem(teams, input[0], logger, 8)
+        case 4: playedTournament = tournamentCustom(teams, input[0], logger)
     
     # Returns winner but currently ignored
     resulting_ranking = playedTournament.play() #resolve_single_knockout_tournament(brackets, rng_generator) 

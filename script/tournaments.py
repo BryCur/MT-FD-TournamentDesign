@@ -141,10 +141,12 @@ class tournamentSwissSystem(aTournament):
     def play(self):
 
         #first round: 
+        self._logger.logInfoMessage("--------------------- ROUND 1")
         for i in range(0, len(self._participants), TEAMS_IN_ONE_MATCH):
                 self.playTournamentMatch(tuple(self._participants[i:i+TEAMS_IN_ONE_MATCH]))
 
         for r in range(self._rounds-1):
+            self._logger.logInfoMessage(f"--------------------- ROUND {r+2}")
             round_matchup = self.makeRound()
             for matchup in round_matchup: 
                 self.playTournamentMatch(matchup)
@@ -157,7 +159,7 @@ class tournamentSwissSystem(aTournament):
         round_matchups = []
         MAX_ATTEMPT = 3
 
-        while len(participant_pool_ordered) > 3:
+        while len(participant_pool_ordered) >= 3:
             first_participant = participant_pool_ordered.pop()
             second_participant = participant_pool_ordered.pop()
             last_participant = None
@@ -180,7 +182,61 @@ class tournamentSwissSystem(aTournament):
 
         return round_matchups
 
-                
+# ======================================================================================
+
+class tournamentCustom(aTournament):
+
+    def __init__(self, participants: list[Team], rng: np.random.Generator, logger: Logger):
+        if len(participants) >= 9 and len(participants) % 3 == 0:
+            super().__init__(participants, rng, logger)
+        else:
+            raise Exception("Not enough participants to run the custom tournament format")
+
+    def getFinalRanking(self):
+        self._ranking = sorted(self._participants.copy(), key = lambda t: t.get_score(), reverse=True)
+        return self._ranking
+
+    def play(self):
+        # step 1 make groups => divide the tournament into 3 groups of equal sizes of 3 participants or more
+        groups : list[list[Team]] = [[],[],[]]
+
+        self._rng.shuffle(self._participants) # seeding
+        for i in range (0, len(self._participants)):
+            groups[i%len(groups)].append(self._participants[i])
+
+        # step 2 => play groups, in swiss system or round robin to have a preliminary ranking
+        for group in groups:
+            groupPhase: aTournament = None
+            if((len(self._participants)/len(groups))% TEAMS_IN_ONE_MATCH == 0): # if enough particpant in a group to play swiss system
+                self._logger.logInfoMessage("Using swiss system!")
+                groupPhase = tournamentSwissSystem(group, self._rng, self._logger, 8) # TODO change with stable round count
+            else:
+                self._logger.logInfoMessage("Using round robin!")
+                groupPhase = tournamentRoundRobin(group, self._rng, self._logger)
+
+            groupPhase.play()
+            self._matchupHistory += groupPhase._matchupHistory
+
+        # step 3 => match the top 3 players of each group against players of other groups to avoid duplicate matches
+        finalPhasePlayers = self.seedFinalPhase(groups)
+
+        # step 4 => play single knockout tournament
+        finalPhase = TournamentSingleKnockout(finalPhasePlayers, self._rng, self._logger)
+        finalPhase.play()
+        self._matchupHistory += finalPhase._matchupHistory
+
+        # step 5 => final ranking
+        return self.getFinalRanking()
 
 
+    def seedFinalPhase(self, groups: list[list[Team]]) -> list[Team]:
+        n = len(groups)
+        result = []
 
+        # consider 3 group orederd by skill ABC, DEF and GHI, thee seeding will put
+        # AEI, DHC and GBF together
+        for i in range(n):
+            for j in range(n):
+                result.append(groups[j][(i+j) % n])
+
+        return result

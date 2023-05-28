@@ -1,7 +1,7 @@
 TEAMS_IN_ONE_MATCH = 3
 DEBUG_MODE = 0
-SAVE_LOGS = 1
-DISPLAY_LOGS = 1
+SAVE_LOGS = 0
+DISPLAY_LOGS = 0
 PERFORM_SEED = 0 # could be nice to implement
 
 def is_integer(x) -> bool:
